@@ -1522,6 +1522,7 @@ const VideoCard = forwardRef<VideoCardHandle, VideoCardProps>(function VideoCard
           tmdbId={tmdb_id}
           type={actualSearchType as 'movie' | 'tv'}
           seasonNumber={seasonNumber}
+          currentEpisode={currentEpisode}
           cmsData={cmsData}
           sourceId={id}
           source={source}

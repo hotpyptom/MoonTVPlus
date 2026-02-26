@@ -21,6 +21,7 @@ interface DetailPanelProps {
   tmdbId?: number;
   type?: 'movie' | 'tv';
   seasonNumber?: number;
+  currentEpisode?: number; // 当前集数（从1开始）
   cmsData?: {
     desc?: string;
     episodes?: string[];
@@ -78,6 +79,7 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
   tmdbId,
   type = 'movie',
   seasonNumber,
+  currentEpisode,
   cmsData,
   sourceId,
   source,
@@ -651,6 +653,30 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
     fetchSeasonData();
   }, [detailData?.tmdbId, detailData?.mediaType, detailData?.seasonNumber, seasonsLoaded]);
 
+  // 自动滚动到当前集数
+  useEffect(() => {
+    if (!currentEpisode || !seasonData?.episodes || !episodesScrollRef.current || currentSource !== 'tmdb') {
+      return;
+    }
+
+    // 等待 DOM 更新后再滚动
+    const timer = setTimeout(() => {
+      const episodeElement = document.getElementById(`episode-${currentEpisode}`);
+      if (episodeElement && episodesScrollRef.current) {
+        // 计算滚动位置，使当前集数居中显示
+        const container = episodesScrollRef.current;
+        const elementLeft = episodeElement.offsetLeft;
+        const elementWidth = episodeElement.offsetWidth;
+        const containerWidth = container.offsetWidth;
+        const scrollLeft = elementLeft - (containerWidth / 2) + (elementWidth / 2);
+
+        container.scrollLeft = scrollLeft;
+      }
+    }, 100);
+
+    return () => clearTimeout(timer);
+  }, [currentEpisode, seasonData?.episodes, currentSource]);
+
   // 异步获取演职人员信息（仅TMDB）
   useEffect(() => {
     if (!detailData?.tmdbId || !detailData?.mediaType || currentSource !== 'tmdb') {
@@ -1212,13 +1238,19 @@ const DetailPanel: React.FC<DetailPanelProps> = ({
                               scrollBehavior: isDragging ? 'auto' : 'smooth'
                             }}
                           >
-                            <div className="flex gap-3 pb-2">
+                            <div className="flex gap-3 py-2">
                               {seasonData.episodes.map((episode: Episode) => {
                                 const isExpanded = expandedEpisodes.has(episode.id);
+                                const isCurrentEpisode = currentEpisode === episode.episode_number;
                                 return (
                                   <div
                                     key={episode.id}
-                                    className="flex-shrink-0 w-64 p-3 rounded bg-gray-50 dark:bg-gray-800"
+                                    id={`episode-${episode.episode_number}`}
+                                    className={`flex-shrink-0 w-64 p-3 rounded ${
+                                      isCurrentEpisode
+                                        ? 'bg-green-100 dark:bg-green-900/30 ring-2 ring-green-500'
+                                        : 'bg-gray-50 dark:bg-gray-800'
+                                    }`}
                                     style={{ pointerEvents: isDragging ? 'none' : 'auto' }}
                                   >
                                     {episode.still_path && (

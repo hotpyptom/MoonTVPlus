@@ -8409,6 +8409,7 @@ function PlayPageClient() {
               : undefined
           }
           type={detail.type_name === '电影' ? 'movie' : 'tv'}
+          currentEpisode={currentEpisodeIndex + 1}
           cmsData={
             // 非特殊源使用 cms 数据
             // 但如果有豆瓣ID且不为0，则不传入cmsData，优先使用豆瓣数据
